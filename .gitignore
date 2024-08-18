@@ -1,0 +1,4 @@
+.venv
+.directory
+Pipfile.lock
+__pycache__
