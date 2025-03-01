@@ -16,7 +16,7 @@ chmod 777 hook.py
 ./hook.py
 ```
 
-## Steam additional steps (Currently only for Nix, needs improvement)
+#### Steam additional steps (Currently only for Nix, needs improvement)
 
 copy files from `./steam` directory into war thunder folder
 
