@@ -6,10 +6,11 @@ import subprocess
 
 class MouseManager:
     xinput_id=7
-    mouse=InputDevice('/dev/input/event4')
-    keyboard=InputDevice('/dev/input/event3')
+    mouse=InputDevice('/dev/input/by-id/usb-30fa_USB_OPTICAL_MOUSE-event-mouse')
+    keyboard=InputDevice('/dev/input/by-id/usb-Logitech_Logitech_USB_Keyboard-event-kbd')
     virtual_mouse=MouseVirtualGamepad()
     enabled=False
+    temp_disabled=False
 
     def __init__(self):
         select([self.mouse, self.keyboard], [], [])
@@ -19,6 +20,15 @@ class MouseManager:
             if event.type == e.EV_KEY:
                 key_event = categorize(event)
                 match key_event.keycode:
+                    case 'KEY_M':
+                        prev_state = self.is_enabled()
+                        self.temp_disabled = key_event.keystate != 0
+
+                        if prev_state != self.is_enabled():
+                            if prev_state:
+                                await self.enable_x11_mouse()
+                            else:
+                                await self.disable_x11_mouse()
                     case 'KEY_BACKSLASH':
                         if key_event.keystate == 1:
                             await self.switch_state() 
@@ -32,7 +42,10 @@ class MouseManager:
         asyncio.ensure_future(self.keyboard_loop())
         
         async for event in self.mouse.async_read_loop():
-            if self.enabled:
+            if self.is_enabled():
+                type:str=e.EV[event.type]
+                print(f'type={type}, code={event.code}, value={event.value}')
+                
                 if event.type == e.EV_KEY:
                     key_event = categorize(event)
                     
@@ -51,14 +64,27 @@ class MouseManager:
                             await self.virtual_mouse.press_4th_btn(key_event.keystate)
                         case 'BTN_EXTRA':
                             await self.virtual_mouse.press_5th_btn(key_event.keystate)
-    
-                elif event.code == 8:
-                    await self.virtual_mouse.scroll(event.value)
+                
+                elif event.type == e.EV_REL:
+                    match event.code:
+                        case 0:
+                            await self.virtual_mouse.moveX(event.value)
+                        case 1:
+                            await self.virtual_mouse.moveY(event.value)
+                        case 8:
+                            await self.virtual_mouse.scroll(event.value)
+                elif event.type == e.EV_SYN:
+                    await self.virtual_mouse.syn()
+                    pass
+    def is_enabled(self):
+        return self.enabled and not self.temp_disabled
             
     async def disable_x11_mouse(self):
+        #self.mouse.grab()
         subprocess.run(["xinput", "set-button-map", str(self.xinput_id), "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"])
 
     async def enable_x11_mouse(self):
+        #self.mouse.ungrab()
         subprocess.run(["xinput", "set-button-map", str(self.xinput_id), "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
         
     async def switch_state(self):

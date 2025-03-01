@@ -3,7 +3,7 @@ from evdev import AbsInfo, InputDevice, UInput, ecodes as e
 
 class MouseVirtualGamepad:
     scroll_value : float = 0
-    scroll_speed : float = 1;
+    scroll_speed : float = 1
     ui: UInput = None
         
     keys = [e.BTN_A, e.BTN_B, e.BTN_X, e.BTN_Y, e.BTN_SELECT]
@@ -13,12 +13,16 @@ class MouseVirtualGamepad:
             e.EV_KEY : self.keys,
 
             e.EV_ABS : [
-
-                (e.ABS_X, AbsInfo(value=0, min=0, max=1024,
-                                fuzz=0, flat=0, resolution=0))]
+                (e.ABS_X, AbsInfo(value=0, min=-20, max=20,
+                                fuzz=0, flat=0, resolution=0)),
+                (e.ABS_Y, AbsInfo(value=0, min=-20, max=20,
+                                fuzz=0, flat=0, resolution=0)),
+                (e.ABS_Z, AbsInfo(value=0, min=0, max=1000,
+                                fuzz=0, flat=0, resolution=0)),
+            ]
         }
 
-        self.ui = UInput(cap, name='mouse-remap', version=0x3)
+        self.ui = UInput(events=cap)
         
     def reset(self):
         self.reset_speed()
@@ -52,11 +56,17 @@ class MouseVirtualGamepad:
         self.scroll_value = max(0, self.scroll_value)
         self.scroll_value = min(1024, self.scroll_value)
         
-        self.ui.write(e.EV_ABS, e.ABS_X, int(self.scroll_value))
+        self.ui.write(e.EV_ABS, e.ABS_Z, int(self.scroll_value))
+        
+    async def moveX(self, value):
+        self.ui.write(e.EV_ABS, e.ABS_X, value)
+        
+    async def moveY(self, value):
+        self.ui.write(e.EV_ABS, e.ABS_Y, value)
+        
+    async def syn(self):
         self.ui.syn()
-        
-        print(self.scroll_value)
-        
+                
     def send_key(self, key, state):
         self.ui.write(e.EV_KEY, key, state)
         self.ui.syn()
