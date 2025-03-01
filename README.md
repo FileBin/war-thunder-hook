@@ -2,7 +2,7 @@
 
 ### Motivation
 
-War thunder has an open issue for linux client with porblem that mouse can randomly flip 90 degree and you will crash, and be knock out for 7 minutes. Annoying? Yeah, so thats why this python script exist.
+War thunder has an open issue for linux client with problem that mouse can randomly flip about 90 degree and you will crash, and be knock out for 7 minutes. Annoying? Yeah, so thats why this python script exist.
 
 ### Installation
 
@@ -22,7 +22,7 @@ copy files from `./steam` directory into war thunder folder
 
 replace `cd /home/filebin/projects/war-thunder-hook/` in start-hook.sh and stop-hook.sh with your __hook__ folder
 
-replace launch parameters with contents of `./command.txt` directory into war thunder folder
+replace launch parameters with contents of `./command.txt`
 
 #### Other distros
 
